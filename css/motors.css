@@ -1,0 +1,120 @@
+html,body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: black;
+    display: flex;
+    flex-direction: column;
+}
+
+.slideContainer {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.slideButtonContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.resetButton {
+    color: white;
+    background: red;
+    border-width: 0;
+    border-radius: 5vw;
+    font-size: 1.5em;
+    font-weight: bolder;
+    margin-top: 2vh;
+}
+
+.valueLabel {
+    color: white;
+    font-size: 1.5em;
+}
+
+#back {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.52, 1.5);
+
+    animation: gradient 2s ease infinite;
+    background: linear-gradient(-37deg, #600, #a10, #600);
+    background-size: 400%;
+
+    border-width: 0;
+
+    height: 8vh;
+    width: 8vh;
+    border-radius: 4vh;
+
+    color: white;
+    font-size: 2em;
+    font-weight: bolder;
+    margin: 20px;
+}
+
+#back:hover {
+    transform: scale(1.1, 1.1);
+    background: linear-gradient(-37deg, #700, #b20, #700);
+    background-size: 400%;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0 50%;
+    }
+    10% {
+        background-position: 0 50%;
+    }
+    40% {
+        background-position: 100% 50%;
+    }
+    60% {
+        background-position: 100% 50%;
+    }
+    90% {
+        background-position: 0 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+.slider {
+    height: 75vh;
+    width: 10vh;
+
+    border-radius: 5px;
+    background: rgba(211, 211, 211, 0.5);
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+
+    /* slider vertical (firefox in html) */
+    -webkit-appearance: slider-vertical; /* chrome */
+    writing-mode: bt-lr; /* IE */
+}
+
+/*.slider::-webkit-slider-thumb {*/
+/*    -webkit-appearance: none;*/
+/*    appearance: none;*/
+/*    width: 20vh;*/
+/*    height: 20vh;*/
+/*    border-radius: 50%;*/
+/*    background: #04AA6D;*/
+/*    cursor: pointer;*/
+/*}*/
+
+.slider::-moz-range-thumb {
+    width: 10vw;
+    height: 10vw;
+    border-radius: 50%;
+    background: #04AA6D;
+    cursor: pointer;
+}

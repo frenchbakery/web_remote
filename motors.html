@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Motor Control</title>
+    <link rel="stylesheet" href="css/motors.css">
+    <script src="js/motors.js"></script>
+</head>
+<body>
+    <button id="back" onclick="toIndex()">
+        ←
+    </button>
+    <div class="slideContainer">
+        <div class="slideButtonContainer">
+            <label class="valueLabel" id="label0">0</label>
+            <label for="motor0"></label>
+            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor0" orient="vertical">
+            <button class="resetButton">Reset</button>
+        </div>
+        <div class="slideButtonContainer">
+            <label class="valueLabel" id="label12">0</label>
+            <label for="motor12"></label>
+            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor12" orient="vertical">
+            <button class="resetButton">Reset</button>
+        </div>
+        <div class="slideButtonContainer">
+            <label class="valueLabel" id="label1">0</label>
+            <label for="motor1"></label>
+            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor1" orient="vertical">
+            <button class="resetButton">Reset</button>
+        </div>
+    </div>
+</body>
+<script src="js/sliders.js"></script>
+</html>
