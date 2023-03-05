@@ -105,25 +105,25 @@
     }
 
 
-    const motor0 = new NoiceButton("motor0", 0, 500);
+    const motor0 = new NoiceButton("motor0", 0, 500, -1500, 1500);
     motor0.setValueChangeCallback((value) => {
-        const velocity = Math.round(value * 15);
+        const velocity = Math.round(value);
         label0.innerText = velocity + "";
         updateServer(currentM0, value);
     })
 
-    const motor12 = new NoiceButton("motor12", 0, 500);
+    const motor1 = new NoiceButton("motor1", 0, 500, -1500, 1500);
+    motor1.setValueChangeCallback((value) => {
+        const velocity = Math.round(value);
+        label1.innerText = velocity + "";
+        updateServer(currentM1, velocity);
+    })
+
+    const motor12 = new NoiceButton("motor12", 0, 500, -1500, 1500);
     motor12.setValueChangeCallback((value) => {
         motor0.onValueChange(value);
         motor1.onValueChange(invert.checked ? -value : value);
-        label12.innerText = Math.round(value * 15) + "";
-    })
-
-    const motor1 = new NoiceButton("motor1", 0, 500);
-    motor1.setValueChangeCallback((value) => {
-        const velocity = Math.round(value * 15);
-        label1.innerText = velocity + "";
-        updateServer(currentM1, velocity);
+        label12.innerText = Math.round(value) + "";
     })
 </script>
 </html>
