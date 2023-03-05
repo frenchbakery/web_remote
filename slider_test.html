@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <link rel="stylesheet" href="css/rslider.css">
+</head>
+<body>
+    <div id="btn1"></div>
+</body>
+<script src="js/rslider.js"></script>
+<script>
+    const nb1 = new NoiceButton("btn1", 0);
+    nb1.setValueChangeCallback((value) => console.log("val: ", value))
+</script>
+</html>

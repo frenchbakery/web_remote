@@ -1,0 +1,36 @@
+.outerCircle {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    border-radius: 50%;
+}
+
+.innerCircle {
+    position: relative;
+    top: 0;
+    left: 0;
+
+    border-radius: 50%;
+
+    margin: 0;
+    padding: 0;
+}
+
+.dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+
+    background: #666666;
+}
+
+.circleRaiser {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    background: radial-gradient(circle at center, transparent 42%, #000 43%, #444 47%, transparent 53%);
+    border-radius: 50%;
+}

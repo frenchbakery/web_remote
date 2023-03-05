@@ -3,33 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <title>Motor Control</title>
+    <link rel="stylesheet" href="css/rslider.css">
     <link rel="stylesheet" href="css/motors.css">
     <script src="js/motors.js"></script>
 </head>
 <body>
-    <button id="back" onclick="toIndex()">
-        ←
-    </button>
+    <div class="hbox">
+        <button id="back" onclick="toIndex()">
+            ←
+        </button>
+        <h1>
+            Motor Control
+        </h1>
+    </div>
     <div class="slideContainer">
         <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Port:
+                <label for="motor0s"></label>
+                <select name="motor0" id="motor0s">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div id="motor0"></div>
             <label class="valueLabel" id="label0">0</label>
-            <label for="motor0"></label>
-            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor0" orient="vertical">
-            <button class="resetButton">Reset</button>
+            <button class="resetButton" onclick="motor0.onValueChange(0)">
+                Stop
+            </button>
         </div>
         <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Invert
+                <label class="switch">
+                    <input type="checkbox" id="invert">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div id="motor12"></div>
             <label class="valueLabel" id="label12">0</label>
-            <label for="motor12"></label>
-            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor12" orient="vertical">
-            <button class="resetButton">Reset</button>
+            <button class="resetButton" onclick="motor12.onValueChange(0)">
+                Stop
+            </button>
         </div>
         <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Port:
+                <label for="motor1s"></label>
+                <select name="motor0" id="motor1s">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div id="motor1"></div>
             <label class="valueLabel" id="label1">0</label>
-            <label for="motor1"></label>
-            <input type="range" min="-1500" max="1500" value="0" class="slider" id="motor1" orient="vertical">
-            <button class="resetButton">Reset</button>
+            <button class="resetButton" onclick="motor1.onValueChange(0)">
+                Stop
+            </button>
         </div>
     </div>
 </body>
-<script src="js/sliders.js"></script>
+<script src="js/rslider.js"></script>
+<script>
+    const label0 = document.getElementById("label0");
+    const label1 = document.getElementById("label1");
+    const label12 = document.getElementById("label12");
+
+    const motor0s = document.getElementById("motor0s");
+    const motor1s = document.getElementById("motor1s");
+    const invert = document.getElementById("invert");
+
+    motor0s.options[0].selected = true;
+    motor1s.options[1].selected = true;
+
+    motor0s.onValueChange = val => {currentM0 = val};
+    motor1s.onValueChange = val => {currentM1 = val};
+
+    function updateServer(motorID, velocity)
+    {
+        const data = {
+            type: "set",
+            request: "motor",
+            port: motorID,
+            velocity: parseInt(velocity)
+        };
+
+        let socket = new WebSocket("ws://192.168.37.207:9999");
+
+        socket.onopen = (_) => {
+            socket.send(JSON.stringify(data));
+        }
+
+        socket.onmessage = (event) => {
+            console.log("result: ", JSON.parse(event.data))
+        }
+
+    }
+
+
+    const motor0 = new NoiceButton("motor0", 0, 500);
+    motor0.setValueChangeCallback((value) => {
+        const velocity = Math.round(value * 15);
+        label0.innerText = velocity + "";
+        updateServer(currentM0, value);
+    })
+
+    const motor12 = new NoiceButton("motor12", 0, 500);
+    motor12.setValueChangeCallback((value) => {
+        motor0.onValueChange(value);
+        motor1.onValueChange(invert.checked ? -value : value);
+        label12.innerText = Math.round(value * 15) + "";
+    })
+
+    const motor1 = new NoiceButton("motor1", 0, 500);
+    motor1.setValueChangeCallback((value) => {
+        const velocity = Math.round(value * 15);
+        label1.innerText = velocity + "";
+        updateServer(currentM1, velocity);
+    })
+</script>
 </html>
