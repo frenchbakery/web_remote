@@ -122,11 +122,13 @@ class NoiceButton
         // innerCircle color calculations
         // halo
         let halo;
-        let halo_perc = .5 + currVal / this.value_range;
+        let halo_perc = .5 + (currVal / Math.max(Math.abs(this.from), Math.abs(this.to))) * .5;
+
+        console.log(halo_perc)
 
         if (currVal < 0)
         {
-            halo_perc = .5 + Math.abs(currVal) / this.value_range;
+            halo_perc = .5 + (Math.abs(currVal) / Math.max(Math.abs(this.from), Math.abs(this.to))) * .5;
         }
 
         if (currVal >= 0)
@@ -158,12 +160,12 @@ class NoiceButton
         let c;
         if (currVal >= 0)
         {
-            c = (currVal / this.value_range) * 2;
+            c = currVal / Math.max(Math.abs(this.from), Math.abs(this.to));
             bg = `rgb(${39 * c}, ${89 * c}, ${114 * c})`;
         }
         else
         {
-            c = (Math.abs(currVal) / this.value_range) * 2;
+            c = Math.abs(currVal) / Math.max(Math.abs(this.from), Math.abs(this.to));
             bg = `rgb(${114 * c}, ${39 * c}, ${89 * c})`;
         }
 
