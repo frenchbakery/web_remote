@@ -7,9 +7,7 @@ html,body {
 }
 
 body {
-    /*background: #313131;*/
-    background-image: radial-gradient(30% 50%, #555 6%, #333 90%);;
-    background-size: 100%;
+    background: #333;
     display: flex;
     flex-direction: column;
 }
