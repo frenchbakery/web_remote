@@ -84,7 +84,7 @@ class NoiceButton
         }
     }
 
-    onValueChange(currVal)
+    onValueChange(currVal, no_callback = false)
     {
         if (isNaN(currVal))
         {
@@ -92,7 +92,10 @@ class NoiceButton
         }
         else
         {
-            this.on_value_change_func(currVal);
+            if (!no_callback)
+            {
+                this.on_value_change_func(currVal);
+            }
             this.value = currVal;
         }
 
@@ -123,8 +126,6 @@ class NoiceButton
         // halo
         let halo;
         let halo_perc = .5 + (currVal / Math.max(Math.abs(this.from), Math.abs(this.to))) * .5;
-
-        console.log(halo_perc)
 
         if (currVal < 0)
         {

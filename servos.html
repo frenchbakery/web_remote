@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/rslider.css">
     <link rel="stylesheet" href="css/motors.css">
     <script src="js/motors.js"></script>
+    <script src="js/server_config.js"></script>
 </head>
 <body>
 <div class="hbox">
@@ -78,11 +79,14 @@
     const s0e = document.getElementById("s0e");
     const s1e = document.getElementById("s1e");
 
+    let s0val = false;
+    let s1val = false;
+
     motor0s.options[0].selected = true;
     motor1s.options[1].selected = true;
 
-    motor0s.onValueChange = val => {currentM0 = val};
-    motor1s.onValueChange = val => {currentM1 = val};
+    motor0s.onchange = val => {currentM0 = val.target[val.target.selectedIndex].innerText};  // change to option text
+    motor1s.onchange = val => {currentM1 = val.target[val.target.selectedIndex].innerText};  // change to option text
 
     function updateServer(motorID, velocity)
     {
@@ -90,10 +94,10 @@
             type: "set",
             request: "servo_pos",
             port: parseInt(motorID),
-            velocity: parseInt(velocity)
+            position: parseInt(velocity)
         };
 
-        let socket = new WebSocket("ws://192.168.37.207:9999");
+        let socket = new WebSocket(ADDRESS);
 
         socket.onopen = (_) => {
             socket.send(JSON.stringify(data));
@@ -101,11 +105,34 @@
 
         socket.onmessage = (event) => {
             console.log("result: ", JSON.parse(event.data))
+            socket.close();
         }
     }
 
-    function updateEnabled()
+    function updateSetEnabled(motorID, enabled)
     {
+        const data = {
+            type: "set",
+            request: "servo_enabled",
+            port: parseInt(motorID),
+            enabled: enabled
+        };
+
+        let socket = new WebSocket(ADDRESS);
+
+        socket.onopen = (_) => {
+            socket.send(JSON.stringify(data));
+        }
+
+        socket.onmessage = (event) => {
+            console.log("enabled result: ", JSON.parse(event.data))
+            socket.close();
+        }
+    }
+
+    function updateStates()
+    {
+        console.log("requesting: ", parseInt(currentM0), parseInt(currentM1))
         const data1 = {
             type: "get",
             request: "servo_enabled",
@@ -118,8 +145,22 @@
             port: parseInt(currentM1)
         }
 
-        let socket1 = new WebSocket("ws://192.168.37.207:9999");
-        let socket2 = new WebSocket("ws://192.168.37.207:9999");
+        const data3 = {
+            type: "get",
+            request: "servo_pos",
+            port: parseInt(currentM0)
+        }
+
+        const data4 = {
+            type: "get",
+            request: "servo_pos",
+            port: parseInt(currentM1)
+        }
+
+        let socket1 = new WebSocket(ADDRESS);
+        let socket2 = new WebSocket(ADDRESS);
+        let socket3 = new WebSocket(ADDRESS);
+        let socket4 = new WebSocket(ADDRESS);
 
         socket1.onopen = (_) => {
             socket1.send(JSON.stringify(data1));
@@ -129,24 +170,52 @@
             socket2.send(JSON.stringify(data2));
         }
 
+        socket3.onopen = (_) => {
+            socket3.send(JSON.stringify(data3));
+        }
+
+        socket4.onopen = (_) => {
+            socket4.send(JSON.stringify(data4));
+        }
+
         socket1.onmessage = (event) => {
             const result = JSON.parse(event.data);
-            console.log("result1: ", result);
-
             if (result.success)
             {
-                s0e.enabled = result.value;
+                s0val = result.value;
+                s0e.checked = result.value;
             }
+            socket1.close();
         }
 
         socket2.onmessage = (event) => {
             const result = JSON.parse(event.data);
-            console.log("result2: ", result);
-
             if (result.success)
             {
-                s1e.enabled = result.value;
+                s1val = result.value;
+                s1e.checked = result.value;
             }
+            socket2.close();
+        }
+
+        socket3.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                label0.innerText = result.value + "";
+                motor0.onValueChange(result.value, true);
+            }
+            socket3.close();
+        }
+
+        socket4.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                label1.innerText = result.value + "";
+                motor1.onValueChange(result.value, true);
+            }
+            socket4.close();
         }
     }
 
@@ -155,16 +224,35 @@
         value = Math.round(value);
         label0.innerText = value + "";
         updateServer(currentM0, value);
-    })
+    });
 
     const motor1 = new NoiceButton("motor1", 1024, 500, 0, 2047);
     motor1.setValueChangeCallback((value) => {
         value = Math.round(value);
         label1.innerText = value + "";
         updateServer(currentM1, value);
+    });
+
+    s0e.addEventListener('change', val => {
+        val = val.currentTarget.checked;
+        console.log(val);
+        if (s0val !== val)
+        {
+            s0val = val;
+            updateSetEnabled(currentM0, val);
+        }
     })
 
-    updateEnabled();
-    setInterval(updateEnabled.bind(this), 500);
+    s1e.addEventListener('change', val => {
+        val = val.currentTarget.checked;
+        if (s1val !== val)
+        {
+            s1val = val;
+            updateSetEnabled(currentM1, val);
+        }
+    })
+
+    updateStates();
+    setInterval(updateStates, 500);
 </script>
 </html>
