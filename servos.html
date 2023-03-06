@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servo Control</title>
+    <link rel="stylesheet" href="css/rslider.css">
+    <link rel="stylesheet" href="css/motors.css">
+    <script src="js/motors.js"></script>
+    <script src="js/server_config.js"></script>
+</head>
+<body>
+<div class="hbox">
+    <button id="back" onclick="toIndex()">
+        ←
+    </button>
+    <h1>
+        Servo Control
+    </h1>
+</div>
+<div class="slideContainer">
+    <div class="slideButtonContainer">
+        <div class="portSelectorBox">
+            Port:
+            <label for="motor0s"></label>
+            <select name="motor0" id="motor0s">
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+            </select>
+        </div>
+        <div id="motor0"></div>
+        <label class="valueLabel" id="label0">0</label>
+        <button class="resetButton" onclick="motor0.onValueChange(1024)">
+            Rest
+        </button>
+        <div class="portSelectorBox">
+            Enabled
+            <label class="switch">
+                <input type="checkbox" id="s0e">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div class="slideButtonContainer">
+        <div class="portSelectorBox">
+            Port:
+            <label for="motor1s"></label>
+            <select name="motor0" id="motor1s">
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+            </select>
+        </div>
+        <div id="motor1"></div>
+        <label class="valueLabel" id="label1">0</label>
+        <button class="resetButton" onclick="motor1.onValueChange(1024)">
+            Reset
+        </button>
+        <div class="portSelectorBox">
+            Enabled
+            <label class="switch">
+                <input type="checkbox" id="s1e">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+</div>
+</body>
+<script src="js/rslider.js"></script>
+<script>
+    const label0 = document.getElementById("label0");
+    const label1 = document.getElementById("label1");
+
+    const motor0s = document.getElementById("motor0s");
+    const motor1s = document.getElementById("motor1s");
+
+    const s0e = document.getElementById("s0e");
+    const s1e = document.getElementById("s1e");
+
+    let s0val = false;
+    let s1val = false;
+
+    motor0s.options[0].selected = true;
+    motor1s.options[1].selected = true;
+
+    motor0s.onchange = val => {currentM0 = val.target[val.target.selectedIndex].innerText};  // change to option text
+    motor1s.onchange = val => {currentM1 = val.target[val.target.selectedIndex].innerText};  // change to option text
+
+    function updateServer(motorID, velocity)
+    {
+        const data = {
+            type: "set",
+            request: "servo_pos",
+            port: parseInt(motorID),
+            position: parseInt(velocity)
+        };
+
+        let socket = new WebSocket(ADDRESS);
+
+        socket.onopen = (_) => {
+            socket.send(JSON.stringify(data));
+        }
+
+        socket.onmessage = (event) => {
+            console.log("result: ", JSON.parse(event.data))
+            socket.close();
+        }
+    }
+
+    function updateSetEnabled(motorID, enabled)
+    {
+        const data = {
+            type: "set",
+            request: "servo_enabled",
+            port: parseInt(motorID),
+            enabled: enabled
+        };
+
+        let socket = new WebSocket(ADDRESS);
+
+        socket.onopen = (_) => {
+            socket.send(JSON.stringify(data));
+        }
+
+        socket.onmessage = (event) => {
+            console.log("enabled result: ", JSON.parse(event.data))
+            socket.close();
+        }
+    }
+
+    function updateStates()
+    {
+        console.log("requesting: ", parseInt(currentM0), parseInt(currentM1))
+        const data1 = {
+            type: "get",
+            request: "servo_enabled",
+            port: parseInt(currentM0)
+        }
+
+        const data2 = {
+            type: "get",
+            request: "servo_enabled",
+            port: parseInt(currentM1)
+        }
+
+        const data3 = {
+            type: "get",
+            request: "servo_pos",
+            port: parseInt(currentM0)
+        }
+
+        const data4 = {
+            type: "get",
+            request: "servo_pos",
+            port: parseInt(currentM1)
+        }
+
+        let socket1 = new WebSocket(ADDRESS);
+        let socket2 = new WebSocket(ADDRESS);
+        let socket3 = new WebSocket(ADDRESS);
+        let socket4 = new WebSocket(ADDRESS);
+
+        socket1.onopen = (_) => {
+            socket1.send(JSON.stringify(data1));
+        }
+
+        socket2.onopen = (_) => {
+            socket2.send(JSON.stringify(data2));
+        }
+
+        socket3.onopen = (_) => {
+            socket3.send(JSON.stringify(data3));
+        }
+
+        socket4.onopen = (_) => {
+            socket4.send(JSON.stringify(data4));
+        }
+
+        socket1.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                s0val = result.value;
+                s0e.checked = result.value;
+            }
+            socket1.close();
+        }
+
+        socket2.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                s1val = result.value;
+                s1e.checked = result.value;
+            }
+            socket2.close();
+        }
+
+        socket3.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                label0.innerText = result.value + "";
+                motor0.onValueChange(result.value, true);
+            }
+            socket3.close();
+        }
+
+        socket4.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.success)
+            {
+                label1.innerText = result.value + "";
+                motor1.onValueChange(result.value, true);
+            }
+            socket4.close();
+        }
+    }
+
+    const motor0 = new NoiceButton("motor0", 1024, 500, 0, 2047);
+    motor0.setValueChangeCallback((value) => {
+        value = Math.round(value);
+        label0.innerText = value + "";
+        updateServer(currentM0, value);
+    });
+
+    const motor1 = new NoiceButton("motor1", 1024, 500, 0, 2047);
+    motor1.setValueChangeCallback((value) => {
+        value = Math.round(value);
+        label1.innerText = value + "";
+        updateServer(currentM1, value);
+    });
+
+    s0e.addEventListener('change', val => {
+        val = val.currentTarget.checked;
+        console.log(val);
+        if (s0val !== val)
+        {
+            s0val = val;
+            updateSetEnabled(currentM0, val);
+        }
+    })
+
+    s1e.addEventListener('change', val => {
+        val = val.currentTarget.checked;
+        if (s1val !== val)
+        {
+            s1val = val;
+            updateSetEnabled(currentM1, val);
+        }
+    })
+
+    updateStates();
+    setInterval(updateStates, 500);
+</script>
+</html>

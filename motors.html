@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/rslider.css">
     <link rel="stylesheet" href="css/motors.css">
     <script src="js/motors.js"></script>
+    <script src="js/server_config.js"></script>
 </head>
 <body>
     <div class="hbox">
@@ -80,8 +81,8 @@
     motor0s.options[0].selected = true;
     motor1s.options[1].selected = true;
 
-    motor0s.onValueChange = val => {currentM0 = val};
-    motor1s.onValueChange = val => {currentM1 = val};
+    motor0s.onchange = val => {currentM0 = val.target[val.target.selectedIndex].innerText};
+    motor1s.onchange = val => {currentM1 = val.target[val.target.selectedIndex].innerText};
 
     function updateServer(motorID, velocity)
     {
@@ -92,7 +93,7 @@
             velocity: parseInt(velocity)
         };
 
-        let socket = new WebSocket("ws://192.168.37.207:9999");
+        let socket = new WebSocket(ADDRESS);
 
         socket.onopen = (_) => {
             socket.send(JSON.stringify(data));
@@ -100,30 +101,31 @@
 
         socket.onmessage = (event) => {
             console.log("result: ", JSON.parse(event.data))
+            socket.close();
         }
 
     }
 
 
-    const motor0 = new NoiceButton("motor0", 0, 500);
+    const motor0 = new NoiceButton("motor0", 0, 500, -1500, 1500);
     motor0.setValueChangeCallback((value) => {
-        const velocity = Math.round(value * 15);
+        const velocity = Math.round(value);
         label0.innerText = velocity + "";
         updateServer(currentM0, value);
     })
 
-    const motor12 = new NoiceButton("motor12", 0, 500);
+    const motor1 = new NoiceButton("motor1", 0, 500, -1500, 1500);
+    motor1.setValueChangeCallback((value) => {
+        const velocity = Math.round(value);
+        label1.innerText = velocity + "";
+        updateServer(currentM1, velocity);
+    })
+
+    const motor12 = new NoiceButton("motor12", 0, 500, -1500, 1500);
     motor12.setValueChangeCallback((value) => {
         motor0.onValueChange(value);
         motor1.onValueChange(invert.checked ? -value : value);
-        label12.innerText = Math.round(value * 15) + "";
-    })
-
-    const motor1 = new NoiceButton("motor1", 0, 500);
-    motor1.setValueChangeCallback((value) => {
-        const velocity = Math.round(value * 15);
-        label1.innerText = velocity + "";
-        updateServer(currentM1, velocity);
+        label12.innerText = Math.round(value) + "";
     })
 </script>
 </html>

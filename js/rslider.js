@@ -16,9 +16,12 @@ let mouseDown = false;
 
 class NoiceButton
 {
-    constructor(div_id, initial = 0, size=400)
+    constructor(div_id, initial = 0, size=400, from=-100, to=100)
     {
+        this.to = to;
+        this.from = from;
         this.size = size;
+        this.value_range = to - from;
         this.div_id = div_id;
         this.raiser_id = (Math.random() * 1_000_000) + ".NoiceButton";
         this.inner_id = (Math.random() * 1_000_000) + ".NoiceButton";
@@ -65,15 +68,23 @@ class NoiceButton
                 curr_angle += 180;
             }
 
-            let val = (curr_angle / angle) * 100;
+            let val = (curr_angle / angle);
 
-            val = -100 < val && val < 100 ? val : 100 * (val / Math.abs(val));
+            if (Math.abs(val) > 1)
+            {
+                val = val / Math.abs(val);
+            }
 
-            this.onValueChange(val);
+            // move value from range -1..1 to 0..1
+            val = (val + 1) / 2;
+
+            let val2 = val * (this.to - this.from) + this.from
+
+            this.onValueChange(val2);
         }
     }
 
-    onValueChange(currVal)
+    onValueChange(currVal, no_callback = false)
     {
         if (isNaN(currVal))
         {
@@ -81,7 +92,10 @@ class NoiceButton
         }
         else
         {
-            this.on_value_change_func(currVal);
+            if (!no_callback)
+            {
+                this.on_value_change_func(currVal);
+            }
             this.value = currVal;
         }
 
@@ -99,11 +113,11 @@ class NoiceButton
         const cen_x = inner_rect.left + inner_rect.width / 2;
         const cen_y = inner_rect.top + inner_rect.width / 2;
 
-        const curr_perc = currVal / 100;
+        let curr_perc = (currVal - this.from) / this.value_range;
 
         // dot position calculations
-        let dot_x = cen_x - dot_rect.width / 2  + Math.cos(curr_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * .7;
-        let dot_y = cen_y - dot_rect.height / 2  + Math.sin(curr_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * .7;
+        let dot_x = cen_x - dot_rect.width / 2  + Math.cos((curr_perc - .5) * (2 * angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * .7;
+        let dot_y = cen_y - dot_rect.height / 2  + Math.sin((curr_perc - .5) * (2 * angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * .7;
 
         dot.style.left = dot_x + "px";
         dot.style.top = dot_y + "px";
@@ -111,10 +125,14 @@ class NoiceButton
         // innerCircle color calculations
         // halo
         let halo;
-        let halo_perc = .5 + Math.abs(curr_perc) * .5
-        halo_perc = Math.abs(curr_perc) > .2 ? halo_perc : .2
+        let halo_perc = .5 + (currVal / Math.max(Math.abs(this.from), Math.abs(this.to))) * .5;
 
-        if (curr_perc >= 0)
+        if (currVal < 0)
+        {
+            halo_perc = .5 + (Math.abs(currVal) / Math.max(Math.abs(this.from), Math.abs(this.to))) * .5;
+        }
+
+        if (currVal >= 0)
         {
             halo = `rgb(${39 * halo_perc}, ${89 * halo_perc}, ${114 * halo_perc})`;
         }
@@ -123,7 +141,7 @@ class NoiceButton
             halo = `rgb(${114 * halo_perc}, ${39 * halo_perc}, ${89 * halo_perc})`;
         }
 
-        let rad_perc = Math.abs(curr_perc) > .2 ? Math.abs(curr_perc)-.2 : 0;
+        let rad_perc = halo_perc;
 
         inner.style.boxShadow = `0 0 ${100 * rad_perc}px ${5 * rad_perc}px ${halo}`;
 
@@ -140,13 +158,16 @@ class NoiceButton
         );
 
         let bg;
-        if (curr_perc >= 0)
+        let c;
+        if (currVal >= 0)
         {
-            bg = `rgb(${39 * curr_perc}, ${89 * curr_perc}, ${114 * curr_perc})`;
+            c = currVal / Math.max(Math.abs(this.from), Math.abs(this.to));
+            bg = `rgb(${39 * c}, ${89 * c}, ${114 * c})`;
         }
         else
         {
-            bg = `rgb(${114 * -curr_perc}, ${39 * -curr_perc}, ${89 * -curr_perc})`;
+            c = Math.abs(currVal) / Math.max(Math.abs(this.from), Math.abs(this.to));
+            bg = `rgb(${114 * c}, ${39 * c}, ${89 * c})`;
         }
 
         gradient.addColorStop(Math.abs(curr_perc / 10), bg);
@@ -161,29 +182,30 @@ class NoiceButton
 
         const outer_ctx = outer.getContext("2d");
         let r_col_on = "rgb(114, 39, 89)";
-        if (curr_perc >=  0)
+        if (currVal >=  0)
         {
             r_col_on = "rgb(39, 89, 114)";
         }
         for (let i = 0; i < n_rings; i++) {
-            let ring_perc = ((2 * i + 1) / n_rings) - 1;
+            let ring_perc = i / n_rings;
 
-            let x0 = outer_rect.width / 2 + Math.cos(ring_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.1;
-            let y0 = outer_rect.height / 2 + Math.sin(ring_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.1;
+            let x0 = outer_rect.width / 2 + Math.cos(2 * (ring_perc - .5) * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.1;
+            let y0 = outer_rect.height / 2 + Math.sin(2 * (ring_perc - .5)* (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.1;
 
-            let x1 = outer_rect.width / 2 + Math.cos(ring_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.4;
-            let y1 = outer_rect.height / 2 + Math.sin(ring_perc * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.4;
+            let x1 = outer_rect.width / 2 + Math.cos(2 * (ring_perc - .5) * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.4;
+            let y1 = outer_rect.height / 2 + Math.sin(2 * (ring_perc - .5) * (angle * (Math.PI / 180)) - Math.PI / 2) * inner_rad * 1.4;
 
             outer_ctx.beginPath();
             outer_ctx.moveTo(x0, y0);
             outer_ctx.lineTo(x1, y1);
 
             let colored = false;
-            if (curr_perc > 0 && ring_perc >= 0 && ring_perc <= curr_perc)
+            const r_position_positive = 0 <= (ring_perc * this.value_range + this.from);
+            if (currVal > 0 && ring_perc <= curr_perc && r_position_positive)
             {
                 colored = true;
             }
-            else if (curr_perc < 0 && ring_perc <= 0 && ring_perc >= curr_perc)
+            else if (currVal < 0 && ring_perc >= curr_perc && !r_position_positive)
             {
                 colored = true;
             }
@@ -201,6 +223,7 @@ class NoiceButton
     setValueChangeCallback(func)
     {
         this.on_value_change_func = func;
+        func(this.value);
     }
 }
 
