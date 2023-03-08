@@ -107,25 +107,38 @@
     }
 
 
+    let motor0Velocity = 0, motor0VelocityLast = 0;
     const motor0 = new NoiceButton("motor0", 0, 500, -1500, 1500);
     motor0.setValueChangeCallback((value) => {
         const velocity = Math.round(value);
         label0.innerText = velocity + "";
-        updateServer(currentM0, value);
-    })
-
+        motor0Velocity = velocity;
+    });
+    
+    let motor1Velocity = 0, motor1VelocityLast = 0;
     const motor1 = new NoiceButton("motor1", 0, 500, -1500, 1500);
     motor1.setValueChangeCallback((value) => {
         const velocity = Math.round(value);
         label1.innerText = velocity + "";
-        updateServer(currentM1, velocity);
-    })
+        motor1Velocity = velocity;
+    });
 
     const motor12 = new NoiceButton("motor12", 0, 500, -1500, 1500);
     motor12.setValueChangeCallback((value) => {
         motor0.onValueChange(value);
         motor1.onValueChange(invert.checked ? -value : value);
         label12.innerText = Math.round(value) + "";
-    })
+    });
+
+    setInterval(() => {
+        if (motor0Velocity !== motor0VelocityLast) {
+            updateServer(currentM0, motor0Velocity);
+            motor0VelocityLast = motor0Velocity;
+        }
+        if (motor1Velocity !== motor1VelocityLast) {
+            updateServer(currentM1, motor1Velocity);
+            motor1VelocityLast = motor1Velocity;
+        }
+    }, 20);
 </script>
 </html>

@@ -7,4 +7,4 @@ configuration for the api
 Author:
 Nilusink
 */
-const ADDRESS = "ws://192.168.204.207:9999"
+const ADDRESS = "ws://192.168.4.42:9999"

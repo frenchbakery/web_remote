@@ -218,20 +218,33 @@
             socket4.close();
         }
     }
-
+    
+    let motor0Velocity = 0, motor0VelocityLast = 0;
     const motor0 = new NoiceButton("motor0", 1024, 500, 0, 2047);
     motor0.setValueChangeCallback((value) => {
         value = Math.round(value);
         label0.innerText = value + "";
-        updateServer(currentM0, value);
+        motor0Velocity = value;
     });
 
+    let motor1Velocity = 0, motor1VelocityLast = 0;
     const motor1 = new NoiceButton("motor1", 1024, 500, 0, 2047);
     motor1.setValueChangeCallback((value) => {
         value = Math.round(value);
         label1.innerText = value + "";
-        updateServer(currentM1, value);
+        motor1Velocity = value;
     });
+
+    setInterval(() => {
+        if (motor0Velocity !== motor0VelocityLast) {
+            updateServer(currentM0, motor0Velocity);
+            motor0VelocityLast = motor0Velocity;
+        }
+        if (motor1Velocity !== motor1VelocityLast) {
+            updateServer(currentM1, motor1Velocity);
+            motor1VelocityLast = motor1Velocity;
+        }
+    }, 20);
 
     s0e.addEventListener('change', val => {
         val = val.currentTarget.checked;
