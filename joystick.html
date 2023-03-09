@@ -126,11 +126,18 @@
 
     const motor12 = new NoiceJoystick("motor12", 0, 0, 500);
     motor12.setValueChangeCallback((x, y) => {
-        console.log(x, y);
+        if (invert.checked) {
+            x = -x;
+            y = -y;
+        }
+        
+        // x axis adds or subtracts up to half of the speed in opposite directions, y adds or subtracts
+        // up to half of the speed in the same direction on both motors
+        motor0speed = x * -750 + y * -750;
+        motor1speed = x * 750 + y * -750;
 
-        /*motor0.onValueChange(value);
-        motor1.onValueChange(invert.checked ? -value : value);
-        label12.innerText = Math.round(value) + "";*/
+        motor0.onValueChange(motor0speed);
+        motor1.onValueChange(motor1speed);
     });
 
     setInterval(() => {
