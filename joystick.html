@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Joystick Control</title>
+    <link rel="stylesheet" href="css/rslider.css">
+    <link rel="stylesheet" href="css/motors.css">
+    <script src="js/motors.js"></script>
+    <script src="js/server_config.js"></script>
+</head>
+<body>
+    <div class="hbox">
+        <button id="back" onclick="toIndex()">
+            ←
+        </button>
+        <h1>
+            Joystick
+        </h1>
+    </div>
+    <div class="slideContainer">
+        <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Port:
+                <label for="motor0s"></label>
+                <select name="motor0" id="motor0s">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div id="motor0"></div>
+            <label class="valueLabel" id="label0">0</label>
+            <button class="resetButton" onclick="motor0.onValueChange(0)">
+                Stop
+            </button>
+        </div>
+        <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Invert
+                <label class="switch">
+                    <input type="checkbox" id="invert">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div id="motor12"></div>
+            <label class="valueLabel" id="label12">0</label>
+            <button class="resetButton" onclick="motor12.onValueChange(0)">
+                Stop
+            </button>
+        </div>
+        <div class="slideButtonContainer">
+            <div class="portSelectorBox">
+                Port:
+                <label for="motor1s"></label>
+                <select name="motor0" id="motor1s">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div id="motor1"></div>
+            <label class="valueLabel" id="label1">0</label>
+            <button class="resetButton" onclick="motor1.onValueChange(0)">
+                Stop
+            </button>
+        </div>
+    </div>
+</body>
+<script src="js/rslider.js"></script>
+<script src="js/joystick.js"></script>
+<script>
+    const label0 = document.getElementById("label0");
+    const label1 = document.getElementById("label1");
+    const label12 = document.getElementById("label12");
+
+    const motor0s = document.getElementById("motor0s");
+    const motor1s = document.getElementById("motor1s");
+    const invert = document.getElementById("invert");
+
+    motor0s.options[0].selected = true;
+    motor1s.options[1].selected = true;
+
+    motor0s.onchange = val => {currentM0 = val.target[val.target.selectedIndex].innerText};
+    motor1s.onchange = val => {currentM1 = val.target[val.target.selectedIndex].innerText};
+
+    function updateServer(motorID, velocity)
+    {
+        const data = {
+            type: "set",
+            request: "motor",
+            port: parseInt(motorID),
+            velocity: parseInt(velocity)
+        };
+
+        let socket = new WebSocket(ADDRESS);
+
+        socket.onopen = (_) => {
+            socket.send(JSON.stringify(data));
+        }
+
+        socket.onmessage = (event) => {
+            console.log("result: ", JSON.parse(event.data))
+            socket.close();
+        }
+
+    }
+
+
+    let motor0Velocity = 0, motor0VelocityLast = 0;
+    const motor0 = new NoiceButton("motor0", 0, 500, -1500, 1500);
+    motor0.setValueChangeCallback((value) => {
+        const velocity = Math.round(value);
+        label0.innerText = velocity + "";
+        motor0Velocity = velocity;
+    });
+    
+    let motor1Velocity = 0, motor1VelocityLast = 0;
+    const motor1 = new NoiceButton("motor1", 0, 500, -1500, 1500);
+    motor1.setValueChangeCallback((value) => {
+        const velocity = Math.round(value);
+        label1.innerText = velocity + "";
+        motor1Velocity = velocity;
+    });
+
+    const motor12 = new NoiceJoystick("motor12", 0, 0, 500);
+    motor12.setValueChangeCallback((x, y) => {
+        console.log(x, y);
+
+        /*motor0.onValueChange(value);
+        motor1.onValueChange(invert.checked ? -value : value);
+        label12.innerText = Math.round(value) + "";*/
+    });
+
+    setInterval(() => {
+        if (motor0Velocity !== motor0VelocityLast) {
+            updateServer(currentM0, motor0Velocity);
+            motor0VelocityLast = motor0Velocity;
+        }
+        if (motor1Velocity !== motor1VelocityLast) {
+            updateServer(currentM1, motor1Velocity);
+            motor1VelocityLast = motor1Velocity;
+        }
+    }, 20);
+</script>
+</html>
