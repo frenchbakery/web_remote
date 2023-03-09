@@ -27,6 +27,8 @@
                     <option>1</option>
                     <option>2</option>
                     <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
                 </select>
             </div>
             <div id="motor0"></div>
@@ -58,6 +60,8 @@
                     <option>1</option>
                     <option>2</option>
                     <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
                 </select>
             </div>
             <div id="motor1"></div>
@@ -87,12 +91,18 @@
 
     function updateServer(motorID, velocity)
     {
-        const data = {
+        let data = {
             type: "set",
             request: "motor",
             port: parseInt(motorID),
             velocity: parseInt(velocity)
         };
+
+        if (motorID > 3) {
+            data.port = data.port - 4;
+            data.request = "create_motor";
+            data.velocity = data.velocity / 3;
+        }
 
         let socket = new WebSocket(ADDRESS);
 
